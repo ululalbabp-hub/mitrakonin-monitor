@@ -154,6 +154,13 @@ function hapusProyekUji_(u) {
   });
 }
 
+/** Jalankan sekali dari editor untuk memberi izin kirim email; mengirim 1 email uji ke pemilik script. */
+function ujiIzinEmail() {
+  var ke = Session.getEffectiveUser().getEmail();
+  MailApp.sendEmail(ke, 'Uji email ' + APP.NAMA, 'Izin kirim email untuk ' + APP.NAMA + ' sudah aktif. Sisa kuota email hari ini: ' + MailApp.getRemainingDailyQuota());
+  Logger.log('Email uji terkirim ke ' + ke);
+}
+
 /** Uji cepat dari editor: menampilkan daftar tab. */
 function ping() {
   var tabs = ss_().getSheets().map(function (s) { return s.getName(); });

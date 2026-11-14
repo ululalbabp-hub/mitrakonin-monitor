@@ -1,6 +1,6 @@
 # Serah Terima ke Akun MITRAKONIN
 
-> **Status: DRAF (diperbarui Tahap 3).** Versi final di Tahap 6.
+> **Status: DRAF (diperbarui Tahap 5).** Versi final di Tahap 6.
 
 Tujuan: memindahkan aplikasi dari akun pribadi (demo) ke akun Google `mitrakonin.monitor` dan akun GitHub MITRAKONIN **hanya dengan konfigurasi, tanpa mengubah kode**.
 
@@ -34,7 +34,8 @@ Lihat/ubah: editor Apps Script › ⚙ **Setelan project** › **Properti skrip*
    - **(A) Pertahankan password pengguna:** di project LAMA, buka Properti skrip, salin nilai `PEPPER`. Di project BARU tambahkan properti `PEPPER` dengan nilai yang sama **sebelum** menjalankan `setup()`.
    - **(B) Reset:** lewati langkah ini. Setelah langkah 5, jalankan `resetPasswordMassal()`; semua pengguna aktif menerima password sementara lewat email.
 5. **Jalankan `setup()`** (pilih fungsi › Jalankan). Saat diminta izin: pilih akun baru › Lanjutan › Buka project › centang **Pilih semua** › Lanjutkan. Periksa log: folder induk dibuat, skema 17 tab sesuai.
-6. **Jalankan `installTriggers()`.** Log harus menampilkan `triggerHarian, triggerLaporan`.
+6. **Jalankan `installTriggers()`.** Log harus menampilkan `triggerHarian, triggerLaporan`. Lalu jalankan **`ujiIzinEmail()`**: bila muncul error izin, klik *Klik di sini untuk memberikan izin* di Log eksekusi dan centang **Kirim email**. Email uji masuk ke akun baru.
+   - Unggah logo kop laporan dari menu **Laporan bulanan › Ganti logo**, atau isi SETTING `logo_url` dengan ID file logo di Drive.
 7. **Deploy Web App:** tombol Terapkan › Deployment baru › jenis **Aplikasi web** › Jalankan sebagai **Saya**, Akses **Siapa saja** › Terapkan › salin URL (`.../exec`).
 8. **Ubah `app/config.js`:** `API_URL` = URL baru. Hanya file ini yang diubah.
 9. **GitHub MITRAKONIN:** buat repo publik `mitrakonin-monitor`, push isi repo ini. Di repo: Settings › Pages › Source = **GitHub Actions**. Workflow `.github/workflows/pages.yml` mempublikasikan folder `app/` ke `https://<akun-mitrakonin>.github.io/mitrakonin-monitor/`.
