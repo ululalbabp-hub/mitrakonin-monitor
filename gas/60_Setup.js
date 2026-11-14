@@ -154,6 +154,50 @@ function hapusProyekUji_(u) {
   });
 }
 
+/**
+ * SERAH TERIMA — kosongkan data demo pada SALINAN Sheet di akun baru.
+ * Menghapus semua baris data di tab transaksi + USERS + LOG, dan mengosongkan logo_url & email_pengirim.
+ * MASTER_MATERIAL, MASTER_TENAGA, dan SETTING (ambang) tetap.
+ * Pengaman 2 langkah: isi Script Property  IZINKAN_KOSONGKAN = YA  dulu, lalu jalankan. Properti dihapus otomatis.
+ */
+function kosongkanDataDemo() {
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('IZINKAN_KOSONGKAN') !== 'YA') throw new Error('Pengaman aktif. Isi Script Property IZINKAN_KOSONGKAN = YA lalu jalankan lagi. (Fungsi ini MENGHAPUS semua data proyek & pengguna di Sheet ini.)');
+  props.deleteProperty('IZINKAN_KOSONGKAN');
+  var tabs = ['USERS', 'PROYEK', 'RAB_ITEM', 'CCO', 'JADWAL', 'PROGRES', 'MEDIA', 'MATERIAL_TRX', 'STOK', 'BIAYA', 'TERMIN', 'RISIKO', 'LAPORAN', 'LOG'], log = [];
+  tabs.forEach(function (t) {
+    var sh = sheet_(t), last = sh.getLastRow();
+    if (last > 1) { sh.getRange(2, 1, last - 1, sh.getLastColumn()).clearContent(); log.push(t + ': ' + (last - 1) + ' baris dikosongkan'); }
+  });
+  // checkbox USERS.aktif tetap ada (validasi tidak dihapus)
+  bersihCache_();
+  ['logo_url', 'email_pengirim'].forEach(function (k) { var r = rows_('SETTING').filter(function (x) { return x.kunci === k; })[0]; if (r) ubah_('SETTING', r, { nilai: '' }); });
+  catatLog_(null, 'KOSONGKAN_DATA_DEMO', '', '', null, { log: log });
+  log.forEach(function (x) { Logger.log(x); });
+  Logger.log('Selesai. Lanjutkan: setup() lalu buatPengelolaPertama().');
+  return log;
+}
+
+/**
+ * SERAH TERIMA — buat akun PENGELOLA pertama tanpa lewat API.
+ * Isi Script Properties  PENGELOLA_NAMA  dan  PENGELOLA_EMAIL , lalu jalankan.
+ * Password sementara dikirim ke email itu; properti dihapus otomatis.
+ */
+function buatPengelolaPertama() {
+  var props = PropertiesService.getScriptProperties();
+  var nama = props.getProperty('PENGELOLA_NAMA'), email = props.getProperty('PENGELOLA_EMAIL');
+  if (!nama || !email) throw new Error('Isi Script Properties PENGELOLA_NAMA dan PENGELOLA_EMAIL dulu.');
+  var pw = passwordSementara_();
+  denganKunci_(function () {
+    var row = barisUser_({ nama: nama, email: email, peran: 'PENGELOLA', proyek_akses: '*' }, pw);
+    sisip_('USERS', [row]);
+    catatLog_(null, 'PENGELOLA_PERTAMA', 'USERS', row.user_id, null, { email: row.email });
+    kirimPassword_(row, pw, 'Akun pengelola MITRAKONIN Monitor');
+  });
+  props.deleteProperty('PENGELOLA_NAMA'); props.deleteProperty('PENGELOLA_EMAIL');
+  Logger.log('Akun pengelola dibuat untuk ' + email + '. Password sementara dikirim lewat email.');
+}
+
 /** Jalankan sekali dari editor untuk memberi izin kirim email; mengirim 1 email uji ke pemilik script. */
 function ujiIzinEmail() {
   var ke = Session.getEffectiveUser().getEmail();

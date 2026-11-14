@@ -9,6 +9,7 @@ PWA (bisa dipasang di HP, jalan offline) + Google Apps Script + Google Sheet + G
 | `gas/` | Backend Google Apps Script, bound ke Sheet database, dikelola dengan `clasp`. |
 | `tools/` | Skrip uji lokal (importer RAB, API end-to-end) dan `deploy-gas.ps1`. |
 | `SERAH-TERIMA.md` | Langkah pindah ke akun `mitrakonin.monitor` & GitHub MITRAKONIN. |
+| `PANDUAN-PENGGUNA.md` | Panduan singkat untuk pengelola, admin lapangan, dan client. |
 
 ## Aturan repo
 - Repo ini **publik**. Tidak boleh ada password, salt, token, kunci, atau data client (file RAB/laporan, angka kontrak) di sini.
@@ -28,6 +29,9 @@ powershell -ExecutionPolicy Bypass -File tools/deploy-gas.ps1 "catatan rilis"
 ```
 ```bash
 node tools/test-api.js
+```
+```bash
+node tools/test-akses.js
 ```
 ```bash
 node tools/test-rab.js
