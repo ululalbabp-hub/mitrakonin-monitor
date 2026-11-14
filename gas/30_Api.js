@@ -41,6 +41,11 @@ var AKSI = {
   userResetPassword: { peran: ['PENGELOLA'], fn: function (u, d) { return userResetPassword_(u, d); } },
   settingSet: { peran: ['PENGELOLA'], fn: function (u, d) { return settingSet_(u, d); } },
   hapusProyekUji: { peran: ['PENGELOLA'], fn: function (u) { return hapusProyekUji_(u); } },
+  // laporan bulanan
+  buatLaporan: { peran: ['PENGELOLA'], fn: function (u, d) { return aksiBuatLaporan_(u, d); } },
+  periodeLaporan: { peran: ['PENGELOLA'], fn: function (u, d) { return aksiPeriodeLaporan_(u, d); } },
+  unduhLaporan: { fn: function (u, d) { return aksiUnduhLaporan_(u, d); } },
+  unggahLogo: { peran: ['PENGELOLA'], fn: function (u, d) { return aksiUnggahLogo_(u, d); } },
 };
 
 function doGet() {

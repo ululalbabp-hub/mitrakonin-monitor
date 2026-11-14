@@ -1,6 +1,6 @@
 import {
   html, raw, api, foto as fotoKotak, sesi, toast, modal, konfirmasi, memuat, kosong, pill, bar, ikon, kurvaS, dataForm, isiUlang,
-  rp, rpS, pct, angka, tgl, jam, tglPanjang, hariIni, selisihHari, tambahHari, warnaKelas, statusKelas, lencana, berkasKeBase64, pergi,
+  rp, rpS, pct, angka, tgl, jam, tglPanjang, hariIni, selisihHari, tambahHari, warnaKelas, statusKelas, lencana, berkasKeBase64, pergi, unduhBerkas,
 } from '../inti.js';
 import { konfigurasi, pilihanSheet } from './umum.js';
 
@@ -661,13 +661,43 @@ export async function pengguna(p, q, tampilkan) {
 // ======================================================================= laporan
 export async function laporan(p, q, tampilkan) {
   tampilkan({ judul: 'Laporan bulanan', nav: '#/p/laporan', isi: memuat() });
-  const [proyek, lap] = await Promise.all([semuaProyek(), api('list', { tab: 'LAPORAN' }, { cache: true })]);
+  const [proyek, lap] = await Promise.all([semuaProyek(), api('list', { tab: 'LAPORAN' })]);
   const nm = {}; proyek.forEach((x) => { nm[x.proyek_id] = x; });
+  const aktif = proyek.filter((x) => x.tgl_mulai && x.status !== 'Selesai');
+  const pid = q.p || (aktif[0] || {}).proyek_id;
+  const per = pid ? await api('periodeLaporan', { proyek_id: pid }).catch(() => ({ periode: [] })) : { periode: [] };
+  const hariIni_ = hariIni();
+  const p0 = nm[pid] || {};
   tampilkan({
-    judul: 'Laporan bulanan', sub: 'PDF otomatis + email ke client', nav: '#/p/laporan',
-    isi: html`<div class="kartu kuning"><b>Pembuatan PDF & pengiriman otomatis dipasang di Tahap 5.</b><span class="kecil">Format mengikuti laporan bulanan MITRAKONIN: cover, laporan umum, rekap per bab, detail per item, Kurva S, foto, hambatan, tanda tangan. Periode mengikuti tanggal mulai tiap proyek. Biaya aktual & harga beli tidak pernah masuk laporan client.</span></div>
-      <div class="kartu"><span class="judul-kartu">Jadwal per proyek</span><div class="daftar">${proyek.filter((x) => x.tgl_mulai).map((x) => html`<div class="kolom"><b class="kecil">${x.nama}</b><span class="redup">Periode tiap tanggal ${Number(String(x.tgl_mulai).slice(8, 10))} · kepada ${x.client_email || '(email client belum diisi)'}</span></div>`)}</div></div>
-      <div class="kartu"><span class="judul-kartu">Arsip laporan</span>${lap.length ? html`<div class="daftar">${lap.slice().reverse().map((l) => html`<div class="baris"><div class="kolom"><b class="kecil">${(nm[l.proyek_id] || {}).nama || l.proyek_id}</b><span class="redup">${tgl(l.periode_awal)} – ${tgl(l.periode_akhir)} · realisasi ${pct(l.prestasi_realisasi, 3)}${l.tgl_kirim ? ' · dikirim ' + tgl(l.tgl_kirim) : ''}</span></div>${l.pdf_url ? html`<a class="btn garis kecil" href="${l.pdf_url}" target="_blank" rel="noopener">PDF</a>` : ''}</div>`)}</div>` : kosong('Belum ada laporan.')}</div>`,
+    judul: 'Laporan bulanan', sub: 'PDF otomatis + email ke client (cc pengelola)', nav: '#/p/laporan',
+    isi: html`<div class="kartu"><div class="f"><label for="lp">Proyek</label><select id="lp" data-ubah="gantiP">${aktif.map((x) => html`<option value="${x.proyek_id}" ${x.proyek_id === pid ? 'selected' : ''}>${x.nama}</option>`)}</select></div>
+        ${pid ? html`<div class="kv"><span>Kepada</span><span>${p0.client_email || html`<b style="color:#A3261B">email client belum diisi</b> — isi di Ubah data proyek`}</span><span>CC</span><span>semua pengelola aktif</span><span>Jadwal</span><span>Periode mulai tanggal ${per.hari || '–'} tiap bulan · dikirim otomatis H+1 pukul 07.00</span></div>` : ''}</div>
+      ${pid ? html`<div class="kartu"><span class="judul-kartu">Periode</span><div class="daftar">${per.periode.map(([a, b], i) => { const l = lap.find((x) => x.proyek_id === pid && String(x.periode_akhir).slice(0, 10) === b); const lewat = b < hariIni_; return html`<div class="baris"><div class="kolom"><b class="kecil">#${i + 1} · ${tgl(a)} – ${tgl(b)}</b><span class="redup">${l ? (l.tgl_kirim ? 'Terkirim ' + tgl(l.tgl_kirim) + ' ke ' + l.dikirim_ke : 'PDF dibuat, belum dikirim') + ' · realisasi ' + pct(l.prestasi_realisasi, 3) : lewat ? 'Belum dibuat' : 'Berjalan — dikirim otomatis ' + tgl(tambahHari(b, 1))}</span></div>
+          <span class="pills">${l ? html`<button class="btn garis kecil" data-aksi="unduh" data-id="${l.laporan_id}">${ikon('unduh', 16)} PDF</button>` : ''}${lewat || !l ? html`<button class="btn garis kecil" data-aksi="buat" data-a="${a}" data-b="${lewat ? b : hariIni_}">${l ? 'Buat ulang' : lewat ? 'Buat PDF' : 'Pratinjau s/d hari ini'}</button>` : ''}${l && !l.tgl_kirim && lewat ? html`<button class="btn kecil" data-aksi="kirim" data-a="${a}" data-b="${b}">Kirim</button>` : ''}</span></div>`; })}</div>
+        <span class="redup">Isi otomatis dari data yang sudah disetujui: cover, laporan umum, rekap per bab, detail per item, Kurva S, termin, dokumentasi foto, tanda tangan. Biaya aktual & harga beli tidak pernah masuk laporan client.</span></div>` : kosong('Belum ada proyek berjalan.')}
+      <div class="kartu"><span class="judul-kartu">Logo kop laporan</span><label class="btn garis kecil" style="position:relative">Ganti logo (PNG/JPG)<input type="file" accept="image/png,image/jpeg" data-ubah="logo" style="position:absolute;opacity:0;width:1px"></label></div>`,
+    aksi: {
+      gantiP(el) { pergi('#/p/laporan?p=' + el.value); },
+      async buat(el) { await proses(el, false); },
+      async kirim(el) { if (await konfirmasi('Kirim laporan ke client?', 'PDF dikirim ke ' + (p0.client_email || 'pengelola') + ' (cc pengelola).', 'Kirim')) await proses(el, true); },
+      async unduh(el) {
+        const t = el.textContent; el.disabled = true; el.textContent = 'Mengunduh…';
+        try { const r = await api('unduhLaporan', { laporan_id: el.dataset.id }); unduhBerkas(r.nama, r.mime, r.data_base64); } catch (e) { toast(e.message, true); }
+        el.disabled = false; el.textContent = t;
+      },
+      async logo(el) {
+        const f = el.files[0]; if (!f) return;
+        try { await api('unggahLogo', { mime: f.type, data_base64: await berkasKeBase64(f) }); toast('Logo kop diperbarui.'); } catch (e) { toast(e.message, true); }
+      },
+    },
   });
+  async function proses(el, kirim) {
+    const t = el.textContent; el.disabled = true; el.textContent = kirim ? 'Membuat & mengirim…' : 'Membuat PDF…';
+    try {
+      const r = await api('buatLaporan', { proyek_id: pid, periode_awal: el.dataset.a, periode_akhir: el.dataset.b, kirim });
+      toast(kirim ? 'Laporan terkirim ke ' + r.dikirim_ke : 'PDF dibuat · realisasi ' + pct(r.prestasi_realisasi, 3));
+      pergi('#/p/laporan?p=' + pid + '&t=' + Date.now());
+    } catch (e) { toast(e.message, true); el.disabled = false; el.textContent = t; }
+  }
 }
 void raw; void jam; void tglPanjang;

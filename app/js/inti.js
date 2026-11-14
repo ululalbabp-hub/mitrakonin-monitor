@@ -257,6 +257,13 @@ export async function siapkanVideo(file, maksDetik) {
   return { blob: file, url: URL.createObjectURL(file), kb: Math.round(file.size / 1024), base64: await blobKeBase64(file), mime: file.type || 'video/mp4', durasi: c.durasi };
 }
 export async function berkasKeBase64(file) { return blobKeBase64(file); }
+/** Simpan berkas base64 ke perangkat (PDF laporan, dll.). */
+export function unduhBerkas(nama, mime, b64) {
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+  const a = document.createElement('a'); a.href = url; a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
 
 // ---------------------------------------------------------------- UI kecil
 export function toast(pesan, gagal = false) {
