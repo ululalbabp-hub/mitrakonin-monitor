@@ -118,9 +118,10 @@ export async function detailProyek([pid], q, tampilkan) {
   const tab = q.tab || 'progres';
   const tabs = ['progres', 'keuangan', 'material', 'risiko'].map((k) => ({ label: k[0].toUpperCase() + k.slice(1), href: '#/p/proyek/' + pid + '?tab=' + k, on: k === tab }));
   tampilkan({ judul: 'Memuat proyek…', kembali: '#/p', tabs, nav: '#/p/proyek', isi: memuat() });
-  const [h, media] = await Promise.all([
+  const [h, media, trxMaterial] = await Promise.all([
     api('dashboardProyek', { proyek_id: pid }, { cache: true }),
     api('list', { tab: 'MEDIA', proyek_id: pid }, { cache: true }).catch(() => []),
+    api('list', { tab: 'MATERIAL_TRX', proyek_id: pid, limit: 30 }, { cache: true }).catch(() => []),
   ]);
   const p = h.proyek, r = h.ringkas, t = tingkat({ proyek: p, indikator: h.indikator });
   const hariKe = p.tgl_mulai ? selisihHari(p.tgl_mulai, hariIni()) + 1 : null, durasi = Number(p.durasi_hari) || null;
@@ -172,7 +173,7 @@ export async function detailProyek([pid], q, tampilkan) {
         <div class="tabel-wrap" style="border:0;border-radius:0"><table><thead><tr><th>Bab</th><th class="angka">RAB final</th><th class="angka">Terpasang</th><th class="angka">Biaya aktual</th><th class="angka">Indeks</th></tr></thead>
         <tbody>${h.per_bab.map((b) => html`<tr><td>${b.bab_kode}${b.bab_nama ? ' ' + b.bab_nama : ''}</td><td class="angka">${b.rab_final !== undefined ? rpS(b.rab_final) : '–'}</td><td class="angka">${b.nilai_terpasang !== undefined ? rpS(b.nilai_terpasang) : '–'}</td><td class="angka">${rpS(b.biaya_aktual)}</td><td class="angka">${b.biaya_aktual && b.nilai_terpasang !== undefined ? angka(b.nilai_terpasang / b.biaya_aktual, 2) : '–'}</td></tr>`)}</tbody></table></div></div>`;
   } else if (tab === 'material') {
-    const trx = await api('list', { tab: 'MATERIAL_TRX', proyek_id: pid, limit: 30 }, { cache: true }).catch(() => []);
+    const trx = trxMaterial;
     isi = html`<div class="dua-panel">
       <div class="kartu"><div class="baris"><span class="judul-kartu">Stok material di lokasi</span><span class="redup">per ${tgl(h.tanggal)}</span></div>
         ${h.stok.length ? html`<div class="daftar">${h.stok.map((s) => html`<div class="kolom" style="gap:6px"><div class="baris"><div class="kolom"><span class="tebal kecil">${s.nama}</span><span class="redup">${s.kode_material} · masuk ${angka(s.masuk, 2)} · pakai ${angka(s.pakai, 2)}${s.retur ? ' · retur ' + angka(s.retur, 2) : ''}${s.transfer ? ' · transfer ' + angka(s.transfer, 2) : ''}</span></div>${pill(s.hari_cukup === null ? 'belum dipakai' : '±' + angka(s.hari_cukup, 0) + ' hari', warnaKelas(s.warna))}</div>

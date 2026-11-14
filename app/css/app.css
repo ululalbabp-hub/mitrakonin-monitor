@@ -44,6 +44,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .tabs { display: flex; margin-top: 8px; overflow-x: auto; scrollbar-width: none; }
 .tab { flex: 1; min-height: 44px; border: 0; background: transparent; font-size: 13px; font-weight: 600; color: var(--redup-terang); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; padding: 0 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; }
 .tab.on { color: #fff; border-bottom-color: var(--emas); }
+/* a:hover global mewarnai tautan navy = sama dengan latar header; tab harus tetap terbaca */
+.tab:hover, .tab:focus-visible { color: #fff; background: rgba(255, 255, 255, .1); border-bottom-color: rgba(242, 169, 30, .6); }
+.tab.on:hover { border-bottom-color: var(--emas); }
+.nav-bawah a:hover { color: var(--navy); }
+.sidebar a, .sidebar a:hover { color: #fff; }
+.sidebar a:not(.on) { color: var(--redup-terang); }
+.kepala a:hover { color: #fff; }
+.btn:hover, a.btn:hover { color: #fff; }
+.btn.emas:hover { color: var(--navy); background: #f5b53c; }
+.btn.garis:hover, a.btn.garis:hover { color: var(--navy); background: var(--latar); }
+.btn.tolak:hover { color: var(--bad); background: var(--bad-bg); }
+.pill:hover { filter: brightness(.96); }
+a.pill.info:hover { color: var(--info); }
+a.pill.ok:hover { color: var(--ok); }
 .seg { display: flex; background: #E6EAF2; border-radius: 12px; padding: 4px; gap: 4px; }
 .seg button { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; font-weight: 600; cursor: pointer; color: var(--redup); }
 .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 2px rgba(11, 33, 73, .12); }
@@ -198,3 +212,6 @@ button.foto small { position: absolute; left: 0; right: 0; bottom: 0; background
 
 /* kolom pertama tabel cukup lebar untuk nama proyek/bab */
 td:first-child { min-width: 220px; }
+
+.kepala .ikon-btn[data-segar] { opacity: .85; }
+.kepala .ikon-btn[data-segar]:hover { opacity: 1; }

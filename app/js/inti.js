@@ -116,7 +116,33 @@ export const status = { dariCache: false, waktuCache: null };
  * Panggil API. opsi.cache = simpan hasil untuk dipakai saat offline.
  * Saat offline/gagal jaringan dan ada cache: kembalikan cache (status.dariCache = true).
  */
-export async function api(action, data = {}, opsi = {}) {
+const AKSI_BACA = new Set(['list', 'get', 'dashboard', 'dashboardProyek', 'antrianApproval', 'periodeLaporan', 'config', 'me', 'userList']);
+const TTL_MEMORI = 90000;
+const memoriApi = new Map();
+/**
+ * Panggilan API dengan cache memori untuk aksi BACA (90 dtk): pindah tab/layar yang datanya sama
+ * tampil seketika. Aksi tulis membuang seluruh cache agar angka selalu segar setelah approve/input.
+ * Permintaan identik yang sedang berjalan digabung (tidak dikirim dua kali).
+ * opsi.segar = true memaksa ambil ulang dari server.
+ */
+export function api(action, data = {}, opsi = {}) {
+  if (!AKSI_BACA.has(action)) {
+    memoriApi.clear();
+    return apiMentah(action, data, opsi);
+  }
+  const k = ((sesi.get() || {}).token || '') + '|' + action + '|' + JSON.stringify(data);
+  const ada = memoriApi.get(k);
+  if (!opsi.segar && ada && (ada.janji || Date.now() - ada.t < TTL_MEMORI)) return ada.janji || Promise.resolve(ada.d);
+  const janji = apiMentah(action, data, opsi).then(
+    (d) => { memoriApi.set(k, { t: Date.now(), d }); return d; },
+    (e) => { memoriApi.delete(k); throw e; });
+  memoriApi.set(k, { t: 0, janji });
+  janji.then(() => { const m = memoriApi.get(k); if (m) delete m.janji; }, () => {});
+  return janji;
+}
+export function bersihkanCacheApi() { memoriApi.clear(); }
+
+async function apiMentah(action, data = {}, opsi = {}) {
   const kunci = opsi.cache ? 'c:' + (sesi.user() || {}).user_id + ':' + action + ':' + JSON.stringify(data) : null;
   if (!CFG.API_URL || /GANTI/.test(CFG.API_URL)) throw new ApiError({ kode: 'KONFIG', pesan: 'API_URL di config.js belum diisi.' });
   let j;
@@ -387,6 +413,7 @@ export function tampil(l) {
           ${l.kembali ? html`<a class="ikon-btn" href="${l.kembali}" aria-label="Kembali" style="margin-left:-10px">${ikon('kembali')}</a>` : html`<img class="logo" src="icons/icon-192.png" alt="">`}
           <div class="kepala-judul"><b>${l.judul}</b>${l.sub ? html`<span>${l.sub}</span>` : ''}</div>
           ${l.kanan || ''}
+          <button type="button" class="ikon-btn" data-segar aria-label="Segarkan data" title="Segarkan data">${ikon('segar', 20)}</button>
         </div>
         ${l.tabs ? html`<nav class="tabs" aria-label="Tab">${l.tabs.map((t) => html`<a class="tab ${t.on ? 'on' : ''}" href="${t.href}" aria-current="${t.on ? 'page' : 'false'}">${t.label}</a>`)}</nav>` : ''}
       </header>
@@ -477,6 +504,10 @@ export async function muatGambar() {
     }
   } finally { muatJalan = false; if (document.querySelector('img[data-media]:not([data-dimuat])')) setTimeout(muatGambar, 500); }
 }
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[data-segar]')) return;
+  memoriApi.clear(); status.dariCache = false; toast('Memuat data terbaru…'); render();
+});
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-lihat]');
   if (!el) return;

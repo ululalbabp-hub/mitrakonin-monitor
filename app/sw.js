@@ -3,7 +3,7 @@
  * Data (POST ke Apps Script) TIDAK disimpan di sini; data offline dikelola IndexedDB di js/inti.js.
  * Naikkan VERSI setiap rilis agar HP mengambil file baru.
  */
-const VERSI = 'mk-v0.5.0';
+const VERSI = 'mk-v0.6.0';
 const CANGKANG = [
   './', 'index.html', 'config.js', 'manifest.webmanifest', 'css/app.css',
   'js/main.js', 'js/inti.js', 'js/rab-import.js',
