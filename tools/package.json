@@ -1,0 +1,11 @@
+{
+  "name": "mitrakonin-tools",
+  "private": true,
+  "description": "Skrip uji lokal MITRAKONIN Monitor",
+  "scripts": {
+    "test:rab": "node test-rab.js"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}
