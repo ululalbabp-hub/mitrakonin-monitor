@@ -33,12 +33,14 @@ var AKSI = {
   importRab: { peran: ['PENGELOLA'], fn: function (u, d) { return importRab_(u, d); } },
   buatCco: { peran: ['PENGELOLA'], fn: function (u, d) { return buatCco_(u, d); } },
   simpanJadwal: { peran: ['PENGELOLA'], fn: function (u, d) { return simpanJadwal_(u, d); } },
+  progresAwal: { peran: ['PENGELOLA'], fn: function (u, d) { return progresAwal_(u, d); } },
   // pengguna & setting
   userList: { peran: ['PENGELOLA'], fn: function (u) { return saringBaca_(u, 'USERS', rows_('USERS')); } },
   userCreate: { peran: ['PENGELOLA'], fn: function (u, d) { return userCreate_(u, d); } },
   userUpdate: { peran: ['PENGELOLA'], fn: function (u, d) { return userUpdate_(u, d); } },
   userResetPassword: { peran: ['PENGELOLA'], fn: function (u, d) { return userResetPassword_(u, d); } },
   settingSet: { peran: ['PENGELOLA'], fn: function (u, d) { return settingSet_(u, d); } },
+  hapusProyekUji: { peran: ['PENGELOLA'], fn: function (u) { return hapusProyekUji_(u); } },
 };
 
 function doGet() {

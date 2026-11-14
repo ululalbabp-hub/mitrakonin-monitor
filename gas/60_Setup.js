@@ -126,6 +126,34 @@ function resetPasswordMassal() {
   return hasil;
 }
 
+/**
+ * Hapus proyek UJI (kode berawalan "UJI-") beserta semua barisnya di setiap tab dan folder Drive-nya (ke Sampah).
+ * Hanya untuk data uji; proyek sungguhan tidak bisa dihapus lewat fungsi ini. LOG tetap disimpan.
+ */
+function hapusProyekUji_(u) {
+  return denganKunci_(function () {
+    var uji = rows_('PROYEK').filter(function (p) { return /^UJI-/i.test(String(p.kode)); });
+    var ids = {}; uji.forEach(function (p) { ids[p.proyek_id] = true; });
+    var ringkas = { proyek: uji.map(function (p) { return p.kode; }), baris: {}, folder: 0 };
+    if (!uji.length) return ringkas;
+    ['RAB_ITEM', 'CCO', 'JADWAL', 'PROGRES', 'MEDIA', 'MATERIAL_TRX', 'BIAYA', 'TERMIN', 'RISIKO', 'LAPORAN', 'PROYEK'].forEach(function (tab) {
+      var hapus = rows_(tab).filter(function (r) { return ids[r.proyek_id] || (tab === 'MATERIAL_TRX' && ids[r.proyek_tujuan]); });
+      hapus.sort(function (a, b) { return b._baris - a._baris; }).forEach(function (r) { sheet_(tab).deleteRow(r._baris); });
+      bersihCache_(tab);
+      ringkas.baris[tab] = hapus.length;
+    });
+    uji.forEach(function (p) { if (p.folder_drive_id) { try { DriveApp.getFolderById(p.folder_drive_id).setTrashed(true); ringkas.folder++; } catch (e) { /* sudah tidak ada */ } } });
+    rows_('USERS').forEach(function (us) {
+      var a = String(us.proyek_akses || '').split(',').filter(String);
+      var b = a.filter(function (x) { return !ids[x]; });
+      if (b.length !== a.length) ubah_('USERS', us, { proyek_akses: b.join(',') });
+    });
+    hitungStokSemua_();
+    catatLog_(u, 'HAPUS_PROYEK_UJI', 'PROYEK', '', null, ringkas);
+    return ringkas;
+  });
+}
+
 /** Uji cepat dari editor: menampilkan daftar tab. */
 function ping() {
   var tabs = ss_().getSheets().map(function (s) { return s.getName(); });

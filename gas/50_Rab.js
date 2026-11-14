@@ -159,6 +159,33 @@ function simpanJadwal_(u, d) {
   });
 }
 
+/**
+ * Progres awal (proyek yang sudah berjalan sebelum memakai aplikasi):
+ * {proyek_id, tanggal, keterangan, items: [{item_id, volume?|persen?}]} -> baris PROGRES langsung Disetujui oleh pengelola.
+ * volume = volume kumulatif terpasang (item volume); persen = persen kumulatif (item lumpsum).
+ */
+function progresAwal_(u, d) {
+  wajibProyek_(u, d.proyek_id);
+  if (!d.tanggal) throw galat_('VALIDASI', 'Tanggal progres awal wajib diisi.');
+  return denganKunci_(function () {
+    var peta = {};
+    rows_('RAB_ITEM').forEach(function (r) { if (r.proyek_id === d.proyek_id) peta[r.item_id] = r; });
+    var baris = [];
+    (d.items || []).forEach(function (x) {
+      var it = peta[x.item_id];
+      if (!it) throw galat_('VALIDASI', 'Item ' + x.item_id + ' tidak ada di proyek ini.');
+      var row = { progres_id: idBaru_('PROGRES'), proyek_id: d.proyek_id, tanggal: d.tanggal, item_id: x.item_id, uraian_kegiatan: d.keterangan || 'Progres awal',
+        input_oleh: u.user_id, status: 'Disetujui', approve_oleh: u.user_id, tgl_approve: sekarang_(), catatan_approve: 'Progres awal (import)' };
+      if (it.cara_ukur === 'persen') { var p = angka_(x.persen); if (p === null || p < 0 || p > 100) throw galat_('VALIDASI', 'Persen item ' + it.uraian + ' harus 0–100.'); row.persen_kumulatif = p; }
+      else { var v = angka_(x.volume); if (v === null || v < 0) throw galat_('VALIDASI', 'Volume item ' + it.uraian + ' tidak valid.'); row.volume_hari_ini = v; }
+      baris.push(row);
+    });
+    sisip_('PROGRES', baris);
+    catatLog_(u, 'PROGRES_AWAL', 'PROGRES', d.proyek_id, null, { tanggal: d.tanggal, jumlah: baris.length, keterangan: d.keterangan });
+    return { disimpan: baris.length };
+  });
+}
+
 function nomorCcoBerikut_(pid) {
   var n = 0;
   rows_('CCO').forEach(function (c) { if (c.proyek_id === pid) { var m = String(c.no_cco).match(/CCO-(\d+)/); if (m) n = Math.max(n, Number(m[1])); } });

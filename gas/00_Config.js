@@ -60,6 +60,8 @@ var KOLOM_ANGKA = {
   saldo: 1, nilai_stok: 1, kebutuhan_rab: 1, sisa_kebutuhan: 1, nominal: 1, termin_ke: 1, syarat_progres_pct: 1, persen_nilai: 1,
   nominal_diterima: 1, dampak: 1, kemungkinan: 1, skor: 1, prestasi_rencana: 1, prestasi_realisasi: 1, deviasi: 1,
 };
+// Kolom kode/nomor yang harus tetap teks (jangan diubah Sheets menjadi angka/tanggal).
+var KOLOM_TEKS = { no_item: 1, kode: 1, bab_kode: 1, no_cco: 1, no_surat_jalan: 1, no_hp: 1, kode_material: 1, proyek_akses: 1 };
 var RE_KOLOM_TANGGAL = /^(tanggal|tgl_|waktu|login_terakhir|target_tgl|periode_)/;
 
 var PILIHAN = {

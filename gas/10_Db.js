@@ -65,6 +65,11 @@ function masuk_(kolom, v) {
     if (n === null) throw galat_('VALIDASI', 'Kolom ' + kolom + ' harus angka (didapat: ' + v + ').');
     return n;
   }
+  if (KOLOM_TEKS[kolom]) {
+    // Sheets mengubah "14.1" menjadi tanggal/angka; awalan ' memaksa disimpan sebagai teks.
+    v = String(v).trim();
+    return /^[\d\s.,\-\/:+]+$/.test(v) ? "'" + v : v;
+  }
   if (RE_KOLOM_TANGGAL.test(kolom) && typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return keTanggal_(v);
   if (typeof v === 'string') {
     v = v.trim();
