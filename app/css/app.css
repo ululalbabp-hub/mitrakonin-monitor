@@ -195,3 +195,6 @@ button.foto small { position: absolute; left: 0; right: 0; bottom: 0; background
 .lencana-video { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(11, 33, 73, .75); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 .foto-baris button.foto { width: 96px; height: 128px; flex: none; }
 .galeri button.foto { aspect-ratio: 3 / 4; width: 100%; }
+
+/* kolom pertama tabel cukup lebar untuk nama proyek/bab */
+td:first-child { min-width: 220px; }
